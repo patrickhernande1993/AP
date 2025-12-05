@@ -13,16 +13,6 @@ import {
   Receipt
 } from 'lucide-react';
 
-// --- Tipos ---
-interface Expense {
-  id: string;
-  date: string; // YYYY-MM-DD
-  description: string;
-  amount: string;
-  status: 'paid' | 'pending';
-  attachment?: string; // Base64 string
-}
-
 // --- Componentes ---
 
 // 1. Sidebar de Navegação
@@ -77,10 +67,10 @@ const AddExpenseModal = ({ isOpen, onClose, onSave }) => {
   const [date, setDate] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  const [status, setStatus] = useState<'paid' | 'pending'>('pending');
-  const [attachment, setAttachment] = useState<string | null>(null);
+  const [status, setStatus] = useState('pending');
+  const [attachment, setAttachment] = useState(null);
   const [isDescManuallyEdited, setIsDescManuallyEdited] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef(null);
 
   // Lógica: Atualizar descrição automaticamente baseada na data
   useEffect(() => {
@@ -91,18 +81,18 @@ const AddExpenseModal = ({ isOpen, onClose, onSave }) => {
     }
   }, [date, isDescManuallyEdited]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAttachment(reader.result as string);
+        setAttachment(reader.result);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     onSave({
       date,
@@ -258,9 +248,9 @@ const ImageViewerModal = ({ src, onClose }) => {
 const App = () => {
   const [activeTab, setActiveTab] = useState('parcelas');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [expenses, setExpenses] = useState([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [viewingImage, setViewingImage] = useState(null);
 
   // Carregar dados do localStorage ao iniciar
   useEffect(() => {
@@ -279,21 +269,21 @@ const App = () => {
     localStorage.setItem('ape_expenses', JSON.stringify(expenses));
   }, [expenses]);
 
-  const addExpense = (data: Omit<Expense, 'id'>) => {
-    const newExpense: Expense = {
+  const addExpense = (data) => {
+    const newExpense = {
       ...data,
       id: crypto.randomUUID()
     };
     setExpenses(prev => [newExpense, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
   };
 
-  const deleteExpense = (id: string) => {
+  const deleteExpense = (id) => {
     if (confirm('Tem certeza que deseja excluir esta parcela?')) {
       setExpenses(prev => prev.filter(e => e.id !== id));
     }
   };
 
-  const toggleStatus = (id: string) => {
+  const toggleStatus = (id) => {
     setExpenses(prev => prev.map(e => {
       if (e.id === id) {
         return { ...e, status: e.status === 'paid' ? 'pending' : 'paid' };
@@ -397,7 +387,7 @@ const App = () => {
                           <td className="px-6 py-4 text-center">
                             {item.attachment ? (
                               <button 
-                                onClick={() => setViewingImage(item.attachment!)}
+                                onClick={() => setViewingImage(item.attachment)}
                                 className="text-indigo-600 hover:text-indigo-800 p-1.5 hover:bg-indigo-50 rounded transition-colors"
                                 title="Ver comprovante"
                               >
@@ -442,5 +432,5 @@ const App = () => {
   );
 };
 
-const root = createRoot(document.getElementById('root')!);
+const root = createRoot(document.getElementById('root'));
 root.render(<App />);
